@@ -74,14 +74,22 @@ app.on('window-all-closed', () => {
 // code. You can also put them in separate files and require them here.
 
 // get messages from renderer
-ipcMain.on('message', (event, arg) => {
-  console.log(arg)
+ipcMain.on('save-file', (event, file, fileName) => {
+  console.log(file)
 
-  // array to string
+  // change ArrayBuffer to Buffer
+  const buffer = Buffer.from(file)
 
   // save to file
-  fs.writeFile('message.txt', arg, function (err) {
-    if (err) return console.log(err)
-    console.log('Hello World > helloworld.txt')
+  fs.writeFile('media/' + fileName, buffer, (err) => {
+    if (err) throw err
+    console.log('The file has been saved!')
   })
+})
+
+ipcMain.on('open-file', (event, fileName) => {
+  console.log(fileName)
+  console.log(join(__dirname + '../../../media/') + fileName)
+
+  shell.openPath(join(__dirname + '../../../media/') + fileName)
 })
