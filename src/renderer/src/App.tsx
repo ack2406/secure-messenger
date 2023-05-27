@@ -1,71 +1,86 @@
+import Aside from './components/aside/Aside'
 import { useSocket } from './hooks/useSocket'
 import { useEffect, useState } from 'react'
+import { Box, Flex, HStack } from '@chakra-ui/react'
+import Header from './components/header/Header'
+import Chat from './components/chat/Chat'
+import Login from './components/login/Login'
+import { Socket } from 'socket.io-client'
 
 function App(): JSX.Element {
-  const { socket, connected, conversations, users } = useSocket()
-  const [message, setMessage] = useState<string>('')
-  const [name, setName] = useState<string>('')
-  const [selectedUser, setSelectedUser] = useState<string>('')
+  const { socket, connected, conversations, setConversations, name } = useSocket()
+  const [selectedFriend, setSelectedFriend] = useState<string>('')
+  const [isLogged, setIsLogged] = useState<boolean>(false)
 
-  // when users changes, set selectedUser to the first user in the list which is not the current user
-  useEffect(() => {
-    if (users.length > 0) {
-      setSelectedUser(users[0] === name ? users[1] : users[0])
-    }
-  }, [users])
+  function getFriends() {
+    return Object.keys(conversations)
+  }
+
+  function setCurrentFriend(friend: string) {
+    console.log('set current friend to ' + friend)
+    setSelectedFriend(friend)
+  }
+
+  function getSelectedConversation() {
+    return conversations[selectedFriend]
+  }
+
+  function addMessageToConversation(message: string) {
+    setConversations((conversations) => ({
+      ...conversations,
+      [selectedFriend]: [
+        ...conversations[selectedFriend],
+        { content: message, author: 'me', messageType: 'text' }
+      ]
+    }))
+  }
+
+  function addFileToConversation(file: File) {
+    setConversations((conversations) => ({
+      ...conversations,
+      [selectedFriend]: [
+        ...conversations[selectedFriend],
+        { content: file.name, author: 'me', messageType: 'media' }
+      ]
+    }))
+  }
+
+  function login() {
+    setIsLogged(true)
+  }
 
   if (!socket) return <div className="container">Loading...</div>
 
   socket.connect()
 
-  function handleMessageChange(event: React.ChangeEvent<HTMLInputElement>) {
-    console.log(selectedUser)
-    setMessage(event.target.value)
-  }
-
-  function handleNameChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setName(event.target.value)
-  }
-
-  function handleSelectChange(event) {
-    console.log(event.target.value)
-    setSelectedUser(event.target.value)
-  }
-
   return (
-    <div className="container">
-      <p>
-        Connected: {connected ? 'true' : 'false'} as {name}
-      </p>
+    <Box>
+      {isLogged ? (
+        <>
+          <Header name={name} />
 
-      <select value={selectedUser} onChange={handleSelectChange}>
-        {users.map((user, index) => user !== name && <option key={index}>{user}</option>)}
-      </select>
-
-      <p>Messages:</p>
-      <ul style={{ width: '30%', backgroundColor: 'lightgray' }}>
-        {conversations
-          .filter((conversation) => conversation.user === selectedUser)[0]
-          ?.messages.map((message, index) => (
-            <li key={index}>
-              {message.author}: {message.content}
-            </li>
-          ))}
-      </ul>
-
-      <input type="text" value={name} onChange={handleNameChange} placeholder="Enter a name" />
-
-      <button onClick={() => socket.emit('join', name)}>Send Name</button>
-
-      <input
-        type="text"
-        value={message}
-        onChange={handleMessageChange}
-        placeholder="Enter a message"
-      />
-
-      <button onClick={() => socket.emit('message', message, selectedUser)}>Send Message</button>
-    </div>
+          <HStack>
+            <Aside
+              socket={socket}
+              name={name}
+              friends={getFriends()}
+              setCurrentFriend={setCurrentFriend}
+              currentFriend={selectedFriend}
+            />
+            <Chat
+              conversation={getSelectedConversation()}
+              addMessage={addMessageToConversation}
+              addFile={addFileToConversation}
+              socket={socket}
+              name={name}
+              friend={selectedFriend}
+            />
+          </HStack>
+        </>
+      ) : (
+        <Login login={login} socket={socket} />
+      )}
+    </Box>
   )
 }
 
