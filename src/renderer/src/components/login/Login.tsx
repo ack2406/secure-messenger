@@ -1,34 +1,50 @@
-import { Center, Flex, InputLeftAddon, VStack } from '@chakra-ui/react'
-import { Button, Input, InputGroup } from '@chakra-ui/react'
+import { Box, Button, Input, Text, VStack } from '@chakra-ui/react'
 import { useState } from 'react'
 import { Socket } from 'socket.io-client'
-import { Text } from '@chakra-ui/react'
-import { Box } from '@chakra-ui/react'
 
 interface LoginProps {
-  login: () => void
   socket: Socket
+  setUserName: React.Dispatch<React.SetStateAction<string>>
 }
-function Login({ login, socket }: LoginProps) {
-  const [name, setName] = useState<string>('')
 
-  function join() {
-    socket.emit('join', name)
-    login()
+function Login({ socket, setUserName }: LoginProps) {
+  const [newUserName, setNewUserName] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+
+  function login() {
+    socket.emit('login', newUserName)
+
+    setUserName(newUserName)
   }
 
   return (
-    <VStack marginTop={200}>
-      <Box>
-        <Text>Enter your name</Text>
+    <VStack marginTop="20vh">
+      <Box backgroundColor="purple.400" padding={10} color="white" borderRadius={5} boxShadow="xl">
+        <Text margin={2}>Username</Text>
         <Input
           variant="outline"
           type="text"
           placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          backgroundColor="white"
+          color="purple.800"
+          focusBorderColor="purple.800"
+          value={newUserName}
+          onChange={(e) => setNewUserName(e.target.value)}
         />
-        <Button colorScheme="purple" onClick={join}>
+
+        <Text margin={2}>Password</Text>
+        <Input
+          variant="outline"
+          type="password"
+          placeholder="Password"
+          backgroundColor="white"
+          color="purple.800"
+          focusBorderColor="purple.800"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <Button marginTop={5} colorScheme="purple" onClick={login}>
           Login
         </Button>
       </Box>

@@ -93,3 +93,19 @@ ipcMain.on('open-file', (event, fileName) => {
 
   shell.openPath(join(__dirname + '../../../media/') + fileName)
 })
+
+ipcMain.on('get-encryption-key', (event, encryptedPassword: string) => {
+  // get key saved in password.txt file
+  fs.readFile('password.txt', 'utf8', (err, data) => {
+    if (err) throw err
+    console.log(data)
+
+    // check if password is correct
+    if (data === encryptedPassword) {
+      // send key to renderer
+      event.reply('encryption-key', true)
+    } else {
+      event.reply('encryption-key', false)
+    }
+  })
+})

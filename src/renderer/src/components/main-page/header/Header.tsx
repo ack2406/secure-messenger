@@ -3,13 +3,13 @@ import { useState } from 'react'
 import { Box, Text } from '@chakra-ui/react'
 
 interface HeaderProps {
-  name: string
+  userName: string
 }
 
-function Header({ name }: HeaderProps) {
+function Header({ userName }: HeaderProps) {
   return (
     <Box padding={3} backgroundColor="purple.600" color="purple.50" boxShadow="lg" height="8vh">
-      <Text>Hello {name}!</Text>
+      <Text>Hello {userName}!</Text>
     </Box>
   )
 }
