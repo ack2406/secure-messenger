@@ -52,6 +52,26 @@ function Chat({
         addMessage(message, 'friend', messageType, sender)
       }
     })
+
+    socket.on('session-create', (sessionKey: string, sender: string) => {
+      setConversations((conversations) => ({
+        ...conversations,
+        [sender]: {
+          ...conversations[sender],
+          sessionKey
+        }
+      }))
+    })
+
+    socket.on('session-destroy', (sender: string) => {
+      setConversations((conversations) => ({
+        ...conversations,
+        [sender]: {
+          ...conversations[sender],
+          sessionKey: ''
+        }
+      }))
+    })
   }, [socket, userName])
 
   function createConversation(newFriend: string) {
@@ -64,16 +84,16 @@ function Chat({
     }))
   }
 
-  function addFileMessage(acceptedFiles: File[]) {
+  function addFileMessage(acceptedFiles: File[], author: 'me' | 'friend') {
     const fileName = acceptedFiles[0].name
 
-    addMessage(fileName, 'me', 'file')
+    addMessage(fileName, author, 'file')
   }
 
-  function addTextMessage() {
+  function addTextMessage(message: string, author: 'me' | 'friend') {
     if (message == '') return
 
-    addMessage(message, 'me', 'text')
+    addMessage(message, author, 'text')
     setMessage('')
 
     socket.emit('message', message, userName, currentConversation)
@@ -107,6 +127,8 @@ function Chat({
         messages: []
       }
     }))
+
+    socket.emit('session-create', sessionKey, userName, currentConversation)
   }
 
   function destroySession() {
@@ -117,6 +139,8 @@ function Chat({
         messages: []
       }
     }))
+
+    socket.emit('session-destroy', userName, currentConversation)
   }
 
   return (

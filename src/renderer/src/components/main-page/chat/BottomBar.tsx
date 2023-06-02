@@ -5,8 +5,8 @@ import Dropzone from 'react-dropzone'
 interface BottomBarProps {
   message: string
   setMessage: React.Dispatch<React.SetStateAction<string>>
-  addFileMessage: (acceptedFiles: File[]) => void
-  addTextMessage: () => void
+  addFileMessage: (acceptedFiles: File[], author: 'me' | 'friend') => void
+  addTextMessage: (message: string, author: 'me' | 'friend') => void
   currentConversation: string
 }
 
@@ -26,7 +26,7 @@ function BottomBar({
         onChange={(e) => setMessage(e.target.value)}
       />
 
-      <Dropzone onDrop={(acceptedFiles) => addFileMessage(acceptedFiles)}>
+      <Dropzone onDrop={(acceptedFiles) => addFileMessage(acceptedFiles, 'me')}>
         {({ getRootProps, getInputProps }) => (
           <section>
             <div {...getRootProps()}>
@@ -37,7 +37,7 @@ function BottomBar({
         )}
       </Dropzone>
 
-      <Button colorScheme="purple" onClick={addTextMessage}>
+      <Button colorScheme="purple" onClick={() => addTextMessage(message, 'me')}>
         Send
       </Button>
     </HStack>

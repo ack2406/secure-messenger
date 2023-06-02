@@ -11,8 +11,8 @@ interface OpenedConversationProps {
   currentConversation: string
   message: string
   setMessage: React.Dispatch<React.SetStateAction<string>>
-  addFileMessage: (acceptedFiles: File[]) => void
-  addTextMessage: () => void
+  addFileMessage: (acceptedFiles: File[], author: 'me' | 'friend') => void
+  addTextMessage: (message: string, author: 'me' | 'friend') => void
 }
 
 function OpenedConversation({
@@ -30,7 +30,7 @@ function OpenedConversation({
   return (
     <Box height="92vh" width="100%">
       <TopBar destroySession={destroySession} currentConversation={currentConversation} />
-      <VStack height="72vh" padding="3">
+      <VStack height="70vh" padding="3">
         {getCurrentConversation().messages.map((message, index) => (
           <Box
             key={index}

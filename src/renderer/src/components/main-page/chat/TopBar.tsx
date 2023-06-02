@@ -1,4 +1,4 @@
-import { Button, Box, Text } from '@chakra-ui/react'
+import { Button, Box, Text, VStack, HStack, Avatar } from '@chakra-ui/react'
 
 import React from 'react'
 
@@ -9,12 +9,23 @@ interface TopBarProps {
 
 function TopBar({ destroySession, currentConversation }: TopBarProps) {
   return (
-    <Box padding={3} color="purple.50" boxShadow="lg" height="8vh">
-      <Button colorScheme="purple" onClick={destroySession}>
-        Delete Sesjaoux
+    <HStack
+      padding={3}
+      color="purple.50"
+      boxShadow="md"
+      height="10vh"
+      justifyContent="space-between"
+    >
+      <HStack>
+        <Avatar marginRight={3} name={currentConversation} />
+        <Text color="black" fontWeight="bold">
+          {currentConversation}
+        </Text>
+      </HStack>
+      <Button colorScheme="red" onClick={destroySession}>
+        Destroy Session
       </Button>
-      <Text>{currentConversation}</Text>
-    </Box>
+    </HStack>
   )
 }
 

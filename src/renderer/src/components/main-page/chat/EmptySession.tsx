@@ -9,9 +9,8 @@ function EmptySession({ createSession }: EmptySessionProps): JSX.Element {
   return (
     <Box height="92vh" width="100%" display="flex" justifyContent="center" alignItems="center">
       <VStack>
-        <Text color={'gray'}>Create Session Key</Text>
-        <Button colorScheme="purple" onClick={createSession}>
-          Create
+        <Button colorScheme="gray" onClick={createSession}>
+          Create Session Key
         </Button>
       </VStack>
     </Box>
