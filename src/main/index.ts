@@ -81,7 +81,7 @@ ipcMain.on('save-file', (event, file, fileName) => {
   const buffer = Buffer.from(file)
 
   // save to file
-  fs.writeFile('media/' + fileName, buffer, (err) => {
+  fs.writeFile('data/media/' + fileName, buffer, (err) => {
     if (err) throw err
     console.log('The file has been saved!')
   })
@@ -89,19 +89,24 @@ ipcMain.on('save-file', (event, file, fileName) => {
 
 ipcMain.on('open-file', (event, fileName) => {
   console.log(fileName)
-  console.log(join(__dirname + '../../../media/') + fileName)
+  console.log(join(__dirname + '../../../data/media/') + fileName)
 
-  shell.openPath(join(__dirname + '../../../media/') + fileName)
+  shell.openPath(join(__dirname + '../../../data/media/') + fileName)
 })
 
 ipcMain.on('get-encryption-key', (event, encryptedPassword: string) => {
   // get key saved in password.txt file
-  fs.readFile('password.txt', 'utf8', (err, data) => {
+  fs.readFile('data/settings.json', 'utf8', (err, data) => {
     if (err) throw err
     console.log(data)
 
+    // get data from "encryptionKey" key
+    const key: string = JSON.parse(data).encryptionKey
+
+    console.log(key)
+
     // check if password is correct
-    if (data === encryptedPassword) {
+    if (key === encryptedPassword) {
       // send key to renderer
       event.reply('encryption-key', true)
     } else {
