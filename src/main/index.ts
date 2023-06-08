@@ -74,7 +74,7 @@ app.on('window-all-closed', () => {
 // code. You can also put them in separate files and require them here.
 
 // get messages from renderer
-ipcMain.on('save-file', (event, file, fileName) => {
+ipcMain.on('save-file', (_event, file, fileName) => {
   console.log(file)
 
   // change ArrayBuffer to Buffer
@@ -87,7 +87,7 @@ ipcMain.on('save-file', (event, file, fileName) => {
   })
 })
 
-ipcMain.on('open-file', (event, fileName) => {
+ipcMain.on('open-file', (_event, fileName) => {
   console.log(fileName)
   console.log(join(__dirname + '../../../data/media/') + fileName)
 
