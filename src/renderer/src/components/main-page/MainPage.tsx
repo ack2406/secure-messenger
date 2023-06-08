@@ -15,10 +15,6 @@ function MainPage({ socket, userName }: MainPageProps): JSX.Element {
   const [conversations, setConversations] = useState<IConversations>({})
   const [currentConversation, setCurrentConversation] = useState<string>('')
 
-  function getCurrentConversation() {
-    return conversations[currentConversation]
-  }
-
   return (
     <Box>
       <Header userName={userName} />
@@ -36,6 +32,7 @@ function MainPage({ socket, userName }: MainPageProps): JSX.Element {
           conversations={conversations}
           setConversations={setConversations}
           currentConversation={currentConversation}
+
         />
       </HStack>
     </Box>

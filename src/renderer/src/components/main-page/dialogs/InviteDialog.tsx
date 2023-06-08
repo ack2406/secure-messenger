@@ -5,7 +5,8 @@ import {
   HStack,
   Button,
   AlertDialogHeader,
-  AlertDialogFooter
+  AlertDialogFooter,
+  AlertDialogBody
 } from '@chakra-ui/react'
 import { useRef } from 'react'
 import { Socket } from 'socket.io-client'
@@ -14,9 +15,10 @@ interface InviteDialogProps {
   openAcceptDialog: boolean
   setOpenAcceptDialog: (open: boolean) => void
   acceptInvite: () => void
+  inviter: string
 }
 
-function InviteDialog({ openAcceptDialog, setOpenAcceptDialog, acceptInvite }: InviteDialogProps) {
+function InviteDialog({ openAcceptDialog, setOpenAcceptDialog, acceptInvite, inviter }: InviteDialogProps) {
   const cancelRef = useRef(null)
   const onClose = () => setOpenAcceptDialog(false)
 
@@ -30,14 +32,18 @@ function InviteDialog({ openAcceptDialog, setOpenAcceptDialog, acceptInvite }: I
       <AlertDialogOverlay>
         <AlertDialogContent>
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
-            Accept invitation?
+            Invitation
           </AlertDialogHeader>
+
+          <AlertDialogBody>
+            Do you want to add {inviter} to friends?
+          </AlertDialogBody>
 
           <AlertDialogFooter>
             <Button ref={cancelRef} onClick={onClose}>
               Cancel
             </Button>
-            <Button colorScheme="green" onClick={onCloseAccept} ml={3}>
+            <Button colorScheme="purple" onClick={onCloseAccept} ml={3}>
               Accept
             </Button>
           </AlertDialogFooter>
