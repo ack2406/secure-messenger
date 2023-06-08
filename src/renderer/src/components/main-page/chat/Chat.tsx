@@ -32,7 +32,12 @@ function Chat({
   }
 
   function acceptInvite() {
-    socket.emit('accept', inviter, userName)
+    const pubkey = 'pubkey2'
+    const privkey = "tajn"
+
+    socket.emit('accept', inviter, userName, pubkey)
+
+    window.electron.ipcRenderer.send('save-privkey', privkey, inviter)
 
     createConversation(inviter)
 
@@ -46,9 +51,29 @@ function Chat({
       setInviter(inviter)
     })
 
-    socket.on('accept', (invitee: string) => {
+    socket.on('accept', (invitee: string, pubkey: string) => {
       console.log(invitee)
       createConversation(invitee)
+
+      console.log("got key from invitee")
+      // save pubkey
+
+      window.electron.ipcRenderer.send('save-pubkey', pubkey, invitee)
+
+      const myPubkey = 'public_key1'
+
+      const privkey = "sekr"
+
+      socket.emit('accept-response', userName, invitee, myPubkey)
+
+      window.electron.ipcRenderer.send('save-privkey', privkey, invitee)
+    })
+
+    socket.on('accept-response', (inviter: string, pubkey: string) => {
+      console.log("got key from inviter")
+
+      // save pubkey
+      window.electron.ipcRenderer.send('save-pubkey', pubkey, inviter)
     })
 
     socket.on('message', (message: string | ArrayBuffer, sender: string) => {
@@ -59,6 +84,15 @@ function Chat({
       if (typeof message == 'string') {
         addMessage(message, 'friend', messageType, sender)
       }
+      
+    })
+
+    socket.on('file-message', (file: ArrayBuffer, fileName: string, sender: string) => {
+      console.log("file: " + fileName)
+
+      window.electron.ipcRenderer.send('save-file', file, fileName)
+
+      addMessage(fileName, 'friend', 'file', sender)
     })
 
     socket.on('session-create', (sessionKey: string, sender: string) => {
@@ -94,8 +128,11 @@ function Chat({
 
   function addFileMessage(acceptedFiles: File[], author: 'me' | 'friend') {
     const fileName = acceptedFiles[0].name
-
+    
+    console.log("file")
     addMessage(fileName, author, 'file')
+
+    socket.emit('file-message', acceptedFiles[0], fileName, userName, currentConversation)
   }
 
   function addTextMessage(message: string, author: 'me' | 'friend') {

@@ -1,6 +1,7 @@
 import { Box, Button, Input, Text, VStack } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Socket } from 'socket.io-client'
+
 
 interface LoginProps {
   socket: Socket
@@ -10,12 +11,35 @@ interface LoginProps {
 function Login({ socket, setUserName }: LoginProps) {
   const [newUserName, setNewUserName] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [credentialsCorrect, setCredentialsCorrect] = useState<boolean>(false);
+
+  useEffect(() => {
+    window.electron.ipcRenderer.on('encryption-key', (_event, isCorrect: boolean) => {
+      if (isCorrect) {
+        setCredentialsCorrect(true)
+      }
+      else {
+        console.log("wrong password")
+
+      }
+    })
+  }, [])
+  
+  useEffect(() => {
+    if (credentialsCorrect) {
+      setUserName(newUserName)
+      socket.emit('login', newUserName)
+    }
+
+  }, [credentialsCorrect])
+
 
   function login() {
-    socket.emit('login', newUserName)
+    window.electron.ipcRenderer.send('get-encryption-key', password)
 
-    setUserName(newUserName)
   }
+
+
 
   return (
     <VStack marginTop="20vh">
