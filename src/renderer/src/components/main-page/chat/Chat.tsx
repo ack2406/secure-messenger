@@ -6,6 +6,7 @@ import { Socket } from 'socket.io-client'
 import NoConversationsSelected from './NoConversationsSelected'
 import EmptySession from './EmptySession'
 import OpenedConversation from './OpenedConversation'
+import InviteDialog from '../dialogs/InviteDialog'
 
 interface ChatProps {
   socket: Socket
@@ -23,24 +24,31 @@ function Chat({
   currentConversation
 }: ChatProps) {
   const [message, setMessage] = useState<string>('')
+  const [openAcceptDialog, setOpenAcceptDialog] = useState<boolean>(false)
+  const [inviter, setInviter] = useState<string>('')
 
   function getCurrentConversation() {
     return conversations[currentConversation]
   }
 
+  function acceptInvite() {
+    socket.emit('accept', inviter, userName)
+
+    createConversation(inviter)
+
+    setOpenAcceptDialog(false)
+    setInviter('')
+  }
+
   useEffect(() => {
     socket.on('invite', (inviter: string) => {
-      socket.emit('accept', inviter, userName)
-
-      console.log(inviter)
-      createConversation(inviter)
-      console.log(getCurrentConversation())
+      setOpenAcceptDialog(true)
+      setInviter(inviter)
     })
 
     socket.on('accept', (invitee: string) => {
       console.log(invitee)
       createConversation(invitee)
-      console.log(getCurrentConversation())
     })
 
     socket.on('message', (message: string | ArrayBuffer, sender: string) => {
@@ -145,6 +153,7 @@ function Chat({
 
   return (
     <>
+      <InviteDialog openAcceptDialog={openAcceptDialog} setOpenAcceptDialog={setOpenAcceptDialog} acceptInvite={acceptInvite} inviter={inviter}/>
       {getCurrentConversation() ? (
         getCurrentConversation().sessionKey == '' ? (
           <EmptySession createSession={createSession} />
