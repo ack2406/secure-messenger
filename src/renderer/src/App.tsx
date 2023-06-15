@@ -7,6 +7,7 @@ import MainPage from './components/main-page/MainPage'
 
 function App(): JSX.Element {
   const [userName, setUserName] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
   const socket = useSocket('http://localhost:3000')
 
   if (!socket) {
@@ -18,10 +19,17 @@ function App(): JSX.Element {
   }
 
   if (!userName) {
-    return <Login socket={socket} setUserName={setUserName} />
+    return (
+      <Login
+        socket={socket}
+        setUserName={setUserName}
+        password={password}
+        setPassword={setPassword}
+      />
+    )
   }
 
-  return <MainPage socket={socket} userName={userName} />
+  return <MainPage socket={socket} userName={userName} password={password} />
 }
 
 export default App

@@ -1,4 +1,4 @@
-import { Box, HStack, VStack } from '@chakra-ui/react'
+import { Box, HStack } from '@chakra-ui/react'
 import { IConversations } from '@renderer/types/BasicTypes'
 import { useState } from 'react'
 import { Socket } from 'socket.io-client'
@@ -9,9 +9,10 @@ import Header from './header/Header'
 interface MainPageProps {
   socket: Socket
   userName: string
+  password: string
 }
 
-function MainPage({ socket, userName }: MainPageProps): JSX.Element {
+function MainPage({ socket, userName, password }: MainPageProps): JSX.Element {
   const [conversations, setConversations] = useState<IConversations>({})
   const [currentConversation, setCurrentConversation] = useState<string>('')
 
@@ -29,10 +30,10 @@ function MainPage({ socket, userName }: MainPageProps): JSX.Element {
         <Chat
           socket={socket}
           userName={userName}
+          password={password}
           conversations={conversations}
           setConversations={setConversations}
           currentConversation={currentConversation}
-
         />
       </HStack>
     </Box>

@@ -14,6 +14,7 @@ interface ChatProps {
   conversations: IConversations
   setConversations: React.Dispatch<React.SetStateAction<IConversations>>
   currentConversation: string
+  password: string
 }
 
 function Chat({
@@ -21,7 +22,8 @@ function Chat({
   userName,
   conversations,
   setConversations,
-  currentConversation
+  currentConversation,
+  password
 }: ChatProps) {
   const [message, setMessage] = useState<string>('')
   const [openAcceptDialog, setOpenAcceptDialog] = useState<boolean>(false)
