@@ -96,7 +96,7 @@ ipcMain.on('open-file', (_event, fileName) => {
 
 ipcMain.on('get-encryption-key', (event, encryptedPassword: string) => {
   // get key saved in password.txt file
-  fs.readFile(join(__dirname + '../../../data/config.json') , 'utf8', (err, data) => {
+  fs.readFile(join(__dirname + '../../../data/config.json'), 'utf8', (err, data) => {
     if (err) throw err
     console.log(data)
 
@@ -119,7 +119,7 @@ ipcMain.on('save-pubkey', (_event, pubkey: string, friend: string) => {
   console.log(pubkey)
 
   // save to file
-  fs.writeFile('data/pubkeys/' + friend + "_key.pub", pubkey, (err) => {
+  fs.writeFile('data/pubkeys/' + friend + '_key.pub', pubkey, (err) => {
     if (err) throw err
     console.log('The public key has been saved!')
   })
@@ -129,7 +129,7 @@ ipcMain.on('save-privkey', (_event, privkey: string, friend: string) => {
   console.log(privkey)
 
   // save to file
-  fs.writeFile('data/privkeys/' + friend + "_key", privkey, (err) => {
+  fs.writeFile('data/privkeys/' + friend + '_key', privkey, (err) => {
     if (err) throw err
     console.log('The private key has been saved!')
   })
@@ -137,20 +137,32 @@ ipcMain.on('save-privkey', (_event, privkey: string, friend: string) => {
 
 ipcMain.on('get-pubkey', (event, friend: string) => {
   // get key saved in password.txt file
-  fs.readFile(join(__dirname + '../../../data/pubkeys/') + friend + "_key.pub" , 'utf8', (err, data) => {
-    if (err) throw err
-    console.log(data)
+  fs.readFile(
+    join(__dirname + '../../../data/pubkeys/') + friend + '_key.pub',
+    'utf8',
+    (err, data) => {
+      if (err) throw err
+      console.log(data)
 
-    event.reply('get-pubkey', data)
-  })
+      // event.reply('get-pubkey-response', data)
+
+      event.returnValue = data
+    }
+  )
 })
 
 ipcMain.on('get-privkey', (event, friend: string) => {
   // get key saved in password.txt file
-  fs.readFile(join(__dirname + '../../../data/privkeys/') + friend + "_key" , 'utf8', (err, data) => {
-    if (err) throw err
-    console.log(data)
+  fs.readFile(
+    join(__dirname + '../../../data/privkeys/') + friend + '_key',
+    'utf8',
+    (err, data) => {
+      if (err) throw err
+      console.log(data)
 
-    event.reply('get-privkey', data)
-  })
+      // event.reply('get-privkey-response', data)
+
+      event.returnValue = data
+    }
+  )
 })
