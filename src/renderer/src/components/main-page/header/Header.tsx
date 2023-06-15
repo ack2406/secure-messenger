@@ -1,6 +1,4 @@
-import { Socket } from 'socket.io-client'
-import { useState } from 'react'
-import { Avatar, Box, HStack, Text } from '@chakra-ui/react'
+import { Avatar, HStack, Text } from '@chakra-ui/react'
 
 interface HeaderProps {
   userName: string
