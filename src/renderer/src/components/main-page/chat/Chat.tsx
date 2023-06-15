@@ -1,12 +1,21 @@
-import { Box, Button, HStack, Input, Text, VStack } from '@chakra-ui/react'
-import { IConversation, IConversations } from '@renderer/types/BasicTypes'
+import { IConversations } from '@renderer/types/BasicTypes'
+import {
+  generateKeys,
+  loadPrivateKey,
+  loadPublicKey,
+  saveKeysToFile,
+  generateSessionKey,
+  encryptAES,
+  decryptAES
+} from '@renderer/utils/RSAKeys'
 import { useEffect, useState } from 'react'
-import Dropzone from 'react-dropzone'
 import { Socket } from 'socket.io-client'
-import NoConversationsSelected from './NoConversationsSelected'
-import EmptySession from './EmptySession'
-import OpenedConversation from './OpenedConversation'
 import InviteDialog from '../dialogs/InviteDialog'
+import EmptySession from './EmptySession'
+import NoConversationsSelected from './NoConversationsSelected'
+import OpenedConversation from './OpenedConversation'
+import JSEncrypt from 'jsencrypt'
+import CryptoJS from 'crypto-js'
 
 interface ChatProps {
   socket: Socket
@@ -33,13 +42,21 @@ function Chat({
     return conversations[currentConversation]
   }
 
-  function acceptInvite() {
-    const pubkey = 'pubkey2'
-    const privkey = "tajn"
+  async function acceptInvite() {
+    const keys = generateKeys()
 
-    socket.emit('accept', inviter, userName, pubkey)
+    console.log(keys.publicKey)
+    console.log(keys.privateKey)
 
-    window.electron.ipcRenderer.send('save-privkey', privkey, inviter)
+    const localkey = CryptoJS.SHA1(password).toString()
+
+    saveKeysToFile(
+      encryptAES(keys.publicKey, localkey).toString(),
+      encryptAES(keys.privateKey, localkey).toString(),
+      inviter
+    )
+
+    socket.emit('accept', inviter, userName, keys.publicKey)
 
     createConversation(inviter)
 
@@ -53,51 +70,82 @@ function Chat({
       setInviter(inviter)
     })
 
-    socket.on('accept', (invitee: string, pubkey: string) => {
+    socket.on('accept', async (invitee: string, pubkey: string) => {
       console.log(invitee)
       createConversation(invitee)
 
-      console.log("got key from invitee")
-      // save pubkey
+      console.log('got key from invitee')
 
-      window.electron.ipcRenderer.send('save-pubkey', pubkey, invitee)
+      console.log('PASSWORD: ' + password)
 
-      const myPubkey = 'public_key1'
+      const localkey = CryptoJS.SHA1(password).toString()
 
-      const privkey = "sekr"
+      pubkey = encryptAES(pubkey, localkey)
 
-      socket.emit('accept-response', userName, invitee, myPubkey)
+      window.electron.ipcRenderer.send('save-pubkey', pubkey, 'friend_' + invitee)
 
-      window.electron.ipcRenderer.send('save-privkey', privkey, invitee)
+      const keys = generateKeys()
+
+      saveKeysToFile(
+        encryptAES(keys.publicKey, localkey).toString(),
+        encryptAES(keys.privateKey, localkey).toString(),
+        invitee
+      )
+
+      socket.emit('accept-response', userName, invitee, keys.publicKey)
     })
 
     socket.on('accept-response', (inviter: string, pubkey: string) => {
-      console.log("got key from inviter")
+      console.log('got key from inviter')
 
-      // save pubkey
-      window.electron.ipcRenderer.send('save-pubkey', pubkey, inviter)
+      console.log('PASSWORD: ' + password)
+
+      const localkey = CryptoJS.SHA1(password).toString()
+
+      pubkey = encryptAES(pubkey, localkey)
+
+      window.electron.ipcRenderer.send('save-pubkey', pubkey, 'friend_' + inviter)
     })
 
-    socket.on('message', (message: string | ArrayBuffer, sender: string) => {
-      const messageType = typeof message == 'string' ? 'text' : 'file'
+    socket.on('message', (message: string, sender: string) => {
+      console.log(conversations)
+      message = decryptAES(message, conversations[sender].sessionKey)
+      console.log(conversations[sender].sessionKey)
+
+      console.log('message: ' + message)
       console.log(message)
       console.log(conversations)
 
       if (typeof message == 'string') {
-        addMessage(message, 'friend', messageType, sender)
+        addMessage(message, 'friend', 'text', sender)
       }
-      
     })
 
-    socket.on('file-message', (file: ArrayBuffer, fileName: string, sender: string) => {
-      console.log("file: " + fileName)
+    socket.on('file-message', (file: string, fileName: string, sender: string) => {
+      console.log('file: ' + fileName)
 
-      window.electron.ipcRenderer.send('save-file', file, fileName)
+      const encrypted = CryptoJS.AES.decrypt(file, conversations[sender].sessionKey).toString(
+        CryptoJS.enc.Utf8
+      )
+
+      const encryptedFileName = decryptAES(fileName, conversations[sender].sessionKey)
+
+      window.electron.ipcRenderer.send('save-file', encrypted, encryptedFileName)
 
       addMessage(fileName, 'friend', 'file', sender)
     })
 
     socket.on('session-create', (sessionKey: string, sender: string) => {
+      console.log('session-create')
+
+      const encrypt = loadPrivateKey(sender, password)
+      console.log('ODBIORCA: ' + sessionKey)
+
+      console.log(encrypt)
+
+      sessionKey = encrypt.decrypt(sessionKey).toString()
+      console.log('no to jest to co nie? ODBIORCA: ' + sessionKey)
+
       setConversations((conversations) => ({
         ...conversations,
         [sender]: {
@@ -116,7 +164,17 @@ function Chat({
         }
       }))
     })
-  }, [socket, userName])
+
+    return () => {
+      socket.off('invite')
+      socket.off('accept')
+      socket.off('accept-response')
+      socket.off('message')
+      socket.off('file-message')
+      socket.off('session-create')
+      socket.off('session-destroy')
+    }
+  }, [socket, userName, conversations])
 
   function createConversation(newFriend: string) {
     setConversations((conversations) => ({
@@ -130,20 +188,39 @@ function Chat({
 
   function addFileMessage(acceptedFiles: File[], author: 'me' | 'friend') {
     const fileName = acceptedFiles[0].name
-    
-    console.log("file")
+    const file = acceptedFiles[0]
+
+    console.log('file')
     addMessage(fileName, author, 'file')
 
-    socket.emit('file-message', acceptedFiles[0], fileName, userName, currentConversation)
+    const sessionKey = getCurrentConversation().sessionKey
+
+    const encrypted = encryptAES(fileName, sessionKey, 'ECB')
+
+    // change file to base64
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      const file = reader.result
+
+      socket.emit('file-message', file, encrypted, userName, currentConversation)
+    }
   }
 
   function addTextMessage(message: string, author: 'me' | 'friend') {
     if (message == '') return
 
     addMessage(message, author, 'text')
+
+    console.log(conversations)
+
+    const sessionKey = getCurrentConversation().sessionKey
+
+    const encrypted = encryptAES(message, sessionKey, 'ECB')
+
     setMessage('')
 
-    socket.emit('message', message, userName, currentConversation)
+    socket.emit('message', encrypted, userName, currentConversation)
   }
 
   function addMessage(
@@ -165,7 +242,15 @@ function Chat({
   }
 
   function createSession() {
-    const sessionKey = Math.random().toString(36).substring(7)
+    const sessionKey = generateSessionKey()
+
+    console.log(sessionKey)
+
+    const encrypt = loadPublicKey('friend_' + currentConversation, password)
+    console.log('NADAWCA: ' + sessionKey)
+
+    const encryptedSessionKey = encrypt.encrypt(sessionKey)
+    console.log('NADAWCA: ' + encryptedSessionKey)
 
     setConversations((conversations) => ({
       ...conversations,
@@ -175,7 +260,7 @@ function Chat({
       }
     }))
 
-    socket.emit('session-create', sessionKey, userName, currentConversation)
+    socket.emit('session-create', encryptedSessionKey, userName, currentConversation)
   }
 
   function destroySession() {
@@ -192,7 +277,12 @@ function Chat({
 
   return (
     <>
-      <InviteDialog openAcceptDialog={openAcceptDialog} setOpenAcceptDialog={setOpenAcceptDialog} acceptInvite={acceptInvite} inviter={inviter}/>
+      <InviteDialog
+        openAcceptDialog={openAcceptDialog}
+        setOpenAcceptDialog={setOpenAcceptDialog}
+        acceptInvite={acceptInvite}
+        inviter={inviter}
+      />
       {getCurrentConversation() ? (
         getCurrentConversation().sessionKey == '' ? (
           <EmptySession createSession={createSession} />
