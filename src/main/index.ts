@@ -76,15 +76,12 @@ app.on('window-all-closed', () => {
 
 // get messages from renderer
 ipcMain.on('save-file', (_event, file, fileName) => {
-  console.log(file)
-
   // change ArrayBuffer to Buffer
   const buffer = Buffer.from(file)
 
 
   fs.writeFile('data/media/' + fileName, buffer, (err) => {
     if (err) throw err
-    console.log('The file has been saved!')
   })
 
 
@@ -92,9 +89,6 @@ ipcMain.on('save-file', (_event, file, fileName) => {
 })
 
 ipcMain.on('open-file', (_event, fileName) => {
-  console.log(fileName)
-  console.log(join(__dirname + '../../../data/media/') + fileName)
-
   shell.openPath(join(__dirname + '../../../data/media/') + fileName)
 })
 
@@ -102,12 +96,10 @@ ipcMain.on('get-encryption-key', (event, encryptedPassword: string) => {
   // get key saved in password.txt file
   fs.readFile(join(__dirname + '../../../data/config.json'), 'utf8', (err, data) => {
     if (err) throw err
-    console.log(data)
 
     // get data from "encryptionKey" key
     const key: string = JSON.parse(data).password
 
-    console.log(key)
 
     // check if password is correct
     if (key === encryptedPassword) {
@@ -120,22 +112,18 @@ ipcMain.on('get-encryption-key', (event, encryptedPassword: string) => {
 })
 
 ipcMain.on('save-pubkey', (_event, pubkey: string, friend: string) => {
-  console.log(pubkey)
 
   // save to file
   fs.writeFile('data/pubkeys/' + friend + '_key.pub', pubkey, (err) => {
     if (err) throw err
-    console.log('The public key has been saved!')
   })
 })
 
 ipcMain.on('save-privkey', (_event, privkey: string, friend: string) => {
-  console.log(privkey)
 
   // save to file
   fs.writeFile('data/privkeys/' + friend + '_key', privkey, (err) => {
     if (err) throw err
-    console.log('The private key has been saved!')
   })
 })
 
@@ -146,7 +134,6 @@ ipcMain.on('get-pubkey', (event, friend: string) => {
     'utf8',
     (err, data) => {
       if (err) throw err
-      console.log(data)
 
       // event.reply('get-pubkey-response', data)
 
@@ -162,7 +149,6 @@ ipcMain.on('get-privkey', (event, friend: string) => {
     'utf8',
     (err, data) => {
       if (err) throw err
-      console.log(data)
 
       // event.reply('get-privkey-response', data)
 

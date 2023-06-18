@@ -15,15 +15,12 @@ function saveKeysToFile(publicKey: string, privateKey: string, friend: string) {
 
 function loadPublicKey(friend: string, password: string) {
   const pubkey = window.electron.ipcRenderer.sendSync('get-pubkey', friend)
-  console.log(pubkey)
 
   const localkey = CryptoJS.SHA1(password).toString()
 
-  console.log('LOCAL KEY: ' + localkey)
 
   const encryptedpubkey = decryptAES(pubkey, localkey).toString()
 
-  console.log('ENCRYPTED KEY: ' + encryptedpubkey)
 
   const encrypt = new JSEncrypt({ default_key_size: '1024' })
 
@@ -34,7 +31,6 @@ function loadPublicKey(friend: string, password: string) {
 
 function loadPrivateKey(friend: string, password: string) {
   const privkey = window.electron.ipcRenderer.sendSync('get-privkey', friend)
-  console.log(privkey)
 
   const localkey = CryptoJS.SHA1(password).toString()
 

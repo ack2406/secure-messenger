@@ -35,7 +35,11 @@ function OpenedConversation({
   }
   return (
     <Box height="92vh" width="100%">
-      <TopBar progress={progress} destroySession={destroySession} currentConversation={currentConversation} />
+      <TopBar
+        progress={progress}
+        destroySession={destroySession}
+        currentConversation={currentConversation}
+      />
       <VStack height="70vh" padding="3">
         {getCurrentConversation().messages.map((message, index) => (
           <Box

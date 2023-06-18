@@ -46,9 +46,6 @@ function Chat({
   async function acceptInvite() {
     const keys = generateKeys()
 
-    console.log(keys.publicKey)
-    console.log(keys.privateKey)
-
     const localkey = CryptoJS.SHA1(password).toString()
 
     saveKeysToFile(
@@ -72,12 +69,7 @@ function Chat({
     })
 
     socket.on('accept', async (invitee: string, pubkey: string) => {
-      console.log(invitee)
       createConversation(invitee)
-
-      console.log('got key from invitee')
-
-      console.log('PASSWORD: ' + password)
 
       const localkey = CryptoJS.SHA1(password).toString()
 
@@ -97,10 +89,6 @@ function Chat({
     })
 
     socket.on('accept-response', (inviter: string, pubkey: string) => {
-      console.log('got key from inviter')
-
-      console.log('PASSWORD: ' + password)
-
       const localkey = CryptoJS.SHA1(password).toString()
 
       pubkey = encryptAES(pubkey, localkey)
@@ -109,13 +97,7 @@ function Chat({
     })
 
     socket.on('message', (message: string, sender: string) => {
-      console.log(conversations)
       message = decryptAES(message, conversations[sender].sessionKey)
-      console.log(conversations[sender].sessionKey)
-
-      console.log('message: ' + message)
-      console.log(message)
-      console.log(conversations)
 
       if (typeof message == 'string') {
         addMessage(message, 'friend', 'text', sender)
@@ -123,14 +105,10 @@ function Chat({
     })
 
     socket.on('progress-bar', () => {
-      console.log("removed progress bar")
       setProgress('')
     })
 
-
     socket.on('file-message', (file: string, fileName: string, sender: string) => {
-      console.log('file: ' + fileName)
-
       const enc = new TextEncoder()
 
       const encrypted = decryptAES(file, conversations[sender].sessionKey)
@@ -145,15 +123,9 @@ function Chat({
     })
 
     socket.on('session-create', (sessionKey: string, sender: string) => {
-      console.log('session-create')
-
       const encrypt = loadPrivateKey(sender, password)
-      console.log('ODBIORCA: ' + sessionKey)
-
-      console.log(encrypt)
 
       sessionKey = encrypt.decrypt(sessionKey).toString()
-      console.log('no to jest to co nie? ODBIORCA: ' + sessionKey)
 
       setConversations((conversations) => ({
         ...conversations,
@@ -202,7 +174,6 @@ function Chat({
     const fileName = acceptedFiles[0].name
     const file = acceptedFiles[0]
 
-    console.log('file')
     addMessage(fileName, author, 'file')
 
     const sessionKey = getCurrentConversation().sessionKey
@@ -210,23 +181,17 @@ function Chat({
     const encrypted = encryptAES(fileName, sessionKey, AESMode)
 
     file.arrayBuffer().then((buffer) => {
-
       const dec = new TextDecoder('utf-8')
 
       const encryptedFile = encryptAES(dec.decode(buffer), sessionKey, AESMode)
       socket.emit('file-message', encryptedFile, encrypted, userName, currentConversation)
-
-    }
-    ) 
-
+    })
   }
 
   function addTextMessage(message: string, author: 'me' | 'friend') {
     if (message == '') return
 
     addMessage(message, author, 'text')
-
-    console.log(conversations)
 
     const sessionKey = getCurrentConversation().sessionKey
 
@@ -258,13 +223,9 @@ function Chat({
   function createSession() {
     const sessionKey = generateSessionKey()
 
-    console.log(sessionKey)
-
     const encrypt = loadPublicKey('friend_' + currentConversation, password)
-    console.log('NADAWCA: ' + sessionKey)
 
     const encryptedSessionKey = encrypt.encrypt(sessionKey)
-    console.log('NADAWCA: ' + encryptedSessionKey)
 
     setConversations((conversations) => ({
       ...conversations,

@@ -17,9 +17,7 @@ function Login({ socket, setUserName, password, setPassword }: LoginProps) {
     window.electron.ipcRenderer.on('encryption-key', (_event, isCorrect: boolean) => {
       if (isCorrect) {
         setCredentialsCorrect(true)
-      } else {
-        console.log('wrong password')
-      }
+      } 
     })
   }, [])
 
