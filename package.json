@@ -30,9 +30,11 @@
     "aes-js": "^3.1.2",
     "crypto-js": "^4.1.1",
     "electron-updater": "^5.3.0",
+    "file-saver": "^2.0.5",
     "framer-motion": "^10.12.16",
     "jsencrypt": "^3.3.2",
     "react-dropzone": "^14.2.3",
+    "sharp": "^0.32.1",
     "socket.io-client": "^4.6.1"
   },
   "devDependencies": {

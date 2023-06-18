@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { ipcMain } from 'electron'
 import fs from 'fs'
+import sharp from 'sharp'
 
 function createWindow(): void {
   // Create the browser window.
@@ -80,11 +81,14 @@ ipcMain.on('save-file', (_event, file, fileName) => {
   // change ArrayBuffer to Buffer
   const buffer = Buffer.from(file)
 
-  // save to file
+
   fs.writeFile('data/media/' + fileName, buffer, (err) => {
     if (err) throw err
     console.log('The file has been saved!')
   })
+
+
+
 })
 
 ipcMain.on('open-file', (_event, fileName) => {

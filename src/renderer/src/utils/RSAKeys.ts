@@ -69,7 +69,7 @@ function decryptAES(message: string, sessionKey: string) {
     mode: CryptoJS.mode.ECB
   })
 
-  if (!decrypted) {
+  if (decrypted.toString(CryptoJS.enc.Utf8) === '') {
     decrypted = CryptoJS.AES.decrypt(message, sessionKey, {
       mode: CryptoJS.mode.CBC
     })

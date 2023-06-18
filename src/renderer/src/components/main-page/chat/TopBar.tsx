@@ -5,9 +5,10 @@ import React from 'react'
 interface TopBarProps {
   destroySession: () => void
   currentConversation: string
+  progress: string
 }
 
-function TopBar({ destroySession, currentConversation }: TopBarProps) {
+function TopBar({ destroySession, currentConversation, progress }: TopBarProps) {
   return (
     <HStack
       padding={3}
@@ -22,6 +23,9 @@ function TopBar({ destroySession, currentConversation }: TopBarProps) {
           {currentConversation}
         </Text>
       </HStack>
+      <Text color="black" fontWeight="bold">
+        {progress}
+      </Text>
       <Button colorScheme="red" onClick={destroySession}>
         Destroy Session
       </Button>

@@ -13,6 +13,9 @@ interface OpenedConversationProps {
   setMessage: React.Dispatch<React.SetStateAction<string>>
   addFileMessage: (acceptedFiles: File[], author: 'me' | 'friend') => void
   addTextMessage: (message: string, author: 'me' | 'friend') => void
+  AESMode: string
+  setAESMode: React.Dispatch<React.SetStateAction<string>>
+  progress: string
 }
 
 function OpenedConversation({
@@ -22,14 +25,17 @@ function OpenedConversation({
   message,
   setMessage,
   addFileMessage,
-  addTextMessage
+  addTextMessage,
+  AESMode,
+  setAESMode,
+  progress
 }: OpenedConversationProps) {
   function getCurrentConversation() {
     return conversations[currentConversation]
   }
   return (
     <Box height="92vh" width="100%">
-      <TopBar destroySession={destroySession} currentConversation={currentConversation} />
+      <TopBar progress={progress} destroySession={destroySession} currentConversation={currentConversation} />
       <VStack height="70vh" padding="3">
         {getCurrentConversation().messages.map((message, index) => (
           <Box
@@ -59,6 +65,8 @@ function OpenedConversation({
         addFileMessage={addFileMessage}
         addTextMessage={addTextMessage}
         currentConversation={currentConversation}
+        AESMode={AESMode}
+        setAESMode={setAESMode}
       />
     </Box>
   )

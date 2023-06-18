@@ -8,6 +8,8 @@ interface BottomBarProps {
   addFileMessage: (acceptedFiles: File[], author: 'me' | 'friend') => void
   addTextMessage: (message: string, author: 'me' | 'friend') => void
   currentConversation: string
+  AESMode: string
+  setAESMode: React.Dispatch<React.SetStateAction<string>>
 }
 
 function BottomBar({
@@ -15,10 +17,23 @@ function BottomBar({
   setMessage,
   addFileMessage,
   addTextMessage,
-  currentConversation
+  currentConversation,
+  AESMode,
+  setAESMode
 }: BottomBarProps) {
+  function changeAESMode() {
+    if (AESMode === 'CBC') {
+      setAESMode('ECB')
+    } else {
+      setAESMode('CBC')
+    }
+  }
+
   return (
     <HStack height="12vh" padding="3">
+      <Button colorScheme="purple" onClick={() => changeAESMode()}>
+        {AESMode}
+      </Button>
       <Input
         type="text"
         placeholder={`Message ${currentConversation}`}

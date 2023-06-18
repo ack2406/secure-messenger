@@ -14,7 +14,6 @@ import InviteDialog from '../dialogs/InviteDialog'
 import EmptySession from './EmptySession'
 import NoConversationsSelected from './NoConversationsSelected'
 import OpenedConversation from './OpenedConversation'
-import JSEncrypt from 'jsencrypt'
 import CryptoJS from 'crypto-js'
 
 interface ChatProps {
@@ -37,6 +36,8 @@ function Chat({
   const [message, setMessage] = useState<string>('')
   const [openAcceptDialog, setOpenAcceptDialog] = useState<boolean>(false)
   const [inviter, setInviter] = useState<string>('')
+  const [AESMode, setAESMode] = useState<string>('ECB')
+  const [progress, setProgress] = useState<string>('')
 
   function getCurrentConversation() {
     return conversations[currentConversation]
@@ -121,18 +122,26 @@ function Chat({
       }
     })
 
+    socket.on('progress-bar', () => {
+      console.log("removed progress bar")
+      setProgress('')
+    })
+
+
     socket.on('file-message', (file: string, fileName: string, sender: string) => {
       console.log('file: ' + fileName)
 
-      const encrypted = CryptoJS.AES.decrypt(file, conversations[sender].sessionKey).toString(
-        CryptoJS.enc.Utf8
-      )
+      const enc = new TextEncoder()
+
+      const encrypted = decryptAES(file, conversations[sender].sessionKey)
+
+      const encoded = enc.encode(encrypted)
 
       const encryptedFileName = decryptAES(fileName, conversations[sender].sessionKey)
 
-      window.electron.ipcRenderer.send('save-file', encrypted, encryptedFileName)
+      window.electron.ipcRenderer.send('save-file', encoded, encryptedFileName)
 
-      addMessage(fileName, 'friend', 'file', sender)
+      addMessage(encryptedFileName, 'friend', 'file', sender)
     })
 
     socket.on('session-create', (sessionKey: string, sender: string) => {
@@ -173,6 +182,7 @@ function Chat({
       socket.off('file-message')
       socket.off('session-create')
       socket.off('session-destroy')
+      socket.off('progress-bar')
     }
   }, [socket, userName, conversations])
 
@@ -187,6 +197,8 @@ function Chat({
   }
 
   function addFileMessage(acceptedFiles: File[], author: 'me' | 'friend') {
+    setProgress('Sending file...')
+
     const fileName = acceptedFiles[0].name
     const file = acceptedFiles[0]
 
@@ -195,16 +207,18 @@ function Chat({
 
     const sessionKey = getCurrentConversation().sessionKey
 
-    const encrypted = encryptAES(fileName, sessionKey, 'ECB')
+    const encrypted = encryptAES(fileName, sessionKey, AESMode)
 
-    // change file to base64
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = () => {
-      const file = reader.result
+    file.arrayBuffer().then((buffer) => {
 
-      socket.emit('file-message', file, encrypted, userName, currentConversation)
+      const dec = new TextDecoder('utf-8')
+
+      const encryptedFile = encryptAES(dec.decode(buffer), sessionKey, AESMode)
+      socket.emit('file-message', encryptedFile, encrypted, userName, currentConversation)
+
     }
+    ) 
+
   }
 
   function addTextMessage(message: string, author: 'me' | 'friend') {
@@ -216,7 +230,7 @@ function Chat({
 
     const sessionKey = getCurrentConversation().sessionKey
 
-    const encrypted = encryptAES(message, sessionKey, 'ECB')
+    const encrypted = encryptAES(message, sessionKey, AESMode)
 
     setMessage('')
 
@@ -295,6 +309,9 @@ function Chat({
             setMessage={setMessage}
             addFileMessage={addFileMessage}
             addTextMessage={addTextMessage}
+            AESMode={AESMode}
+            setAESMode={setAESMode}
+            progress={progress}
           />
         )
       ) : (
