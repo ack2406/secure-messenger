@@ -11,6 +11,8 @@ App is created with:
 - [CryptoJS](https://cryptojs.gitbook.io/docs/)
 - [Chakra UI](https://chakra-ui.com/)
 
+For proper functionality, the application requires a server to be running. The server can be found [here](https://github.com/ack2406/secure-messenger-server)
+
 ## Dependencies
 
 - [Node.js](https://nodejs.org/en/)
